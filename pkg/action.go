@@ -9,10 +9,10 @@ import (
 )
 
 type Response[T any] struct {
-	ErrMsg string `json:"ErrMsg"`
 	Result int    `json:"Result"`
+	ErrMsg string `json:"ErrMsg"`
 	Data   *T     `json:"Data"` // This can hold any type of data for dynamic responses
-	RowId  int    `json:"RowId"`
+	RowId  *int   `json:"RowId"`
 }
 
 const (
@@ -32,7 +32,7 @@ func CallAction[T any, P any](funcName string, action string, param P) (r *Respo
 	var jsonBytes []byte
 	var request *http.Request
 	var response *http.Response
-	var result *Response[T]
+	var result = Response[T]{}
 	var router *RpcClient
 	// Create a new response object
 	router, err = DefaultClient()
@@ -76,11 +76,11 @@ func CallAction[T any, P any](funcName string, action string, param P) (r *Respo
 	if jsonBytes, err = io.ReadAll(response.Body); err != nil {
 		return
 	}
-	if err = json.Unmarshal(jsonBytes, result); err != nil {
+	if err = json.Unmarshal(jsonBytes, &result); err != nil {
 		return
 	}
 	// If the action failed and retry is enabled, try to log in again
-	if router.config.Retry.Enable && actionFailed(result) {
+	if router.config.Retry.Enable && actionFailed(&result) {
 		if err = router.login(); err != nil {
 			return
 		}
@@ -88,5 +88,5 @@ func CallAction[T any, P any](funcName string, action string, param P) (r *Respo
 	}
 	// Log the action call
 	router.Printf("Called action [%s] param=%v -> response: %s\n", action, param, jsonBytes)
-	return result, err
+	return &result, err
 }

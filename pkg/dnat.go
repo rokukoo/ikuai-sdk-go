@@ -47,7 +47,7 @@ func AddDNat(params *AddDNatParam) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	return res.RowId, nil
+	return *res.RowId, nil
 }
 
 // DelDNat Del DNat
