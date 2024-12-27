@@ -15,6 +15,7 @@ const (
 	UsernameParam              = "username"
 	PasswordParam              = "passwd"
 	PassParam                  = "pass"
+	RememberPasswordParam      = "remember_password"
 	HeaderSetCookie            = "Set-Cookie"
 	ContentTypeApplicationJSON = "application/json"
 )
@@ -30,21 +31,22 @@ func base64EncodeWithSalt(password, salt string) string {
 	return base64.StdEncoding.EncodeToString([]byte(combined))
 }
 
-func (router *RpcClient) accessToken() (token string, err error) {
-	config := router.config
+func (c *RpcClient) accessToken() (token string, err error) {
+	config := c.config
 	loginActionUrl := config.Url + ActionLoginPath
 	passwd := md5Hash(config.Password)
 	pass := base64EncodeWithSalt(config.Password, Salt)
 	params := map[string]any{
-		UsernameParam: config.Username,
-		PasswordParam: passwd,
-		PassParam:     pass,
+		UsernameParam:         config.Username,
+		PasswordParam:         passwd,
+		PassParam:             pass,
+		RememberPasswordParam: true,
 	}
 	jsonParams, err := json.Marshal(params)
 	if err != nil {
 		return token, err
 	}
-	resp, err := router.client.Post(loginActionUrl, ContentTypeApplicationJSON, bytes.NewBuffer(jsonParams))
+	resp, err := c.client.Post(loginActionUrl, ContentTypeApplicationJSON, bytes.NewBuffer(jsonParams))
 	if err != nil {
 		return token, err
 	}
@@ -69,7 +71,7 @@ func (router *RpcClient) accessToken() (token string, err error) {
 	}
 
 	token = cookieMap["sess_key"]
-	router.Printf("Get access token: %s", token)
+	c.Printf("Get access token: %s", token)
 	return token, err
 }
 
