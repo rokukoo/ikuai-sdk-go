@@ -87,6 +87,8 @@ func CallAction[T any, P any](funcName string, action string, param P) (r *Respo
 		return CallAction[T, P](funcName, action, param)
 	}
 	// Log the action call
-	router.Printf("Called action [%s] param=%v -> response: %s\n", action, param, jsonBytes)
+	if router.config.Log {
+		router.Printf("Called action [%s] param=%v -> response: %s\n", action, param, jsonBytes)
+	}
 	return &result, err
 }

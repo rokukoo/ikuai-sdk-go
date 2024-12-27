@@ -71,7 +71,9 @@ func (c *RpcClient) accessToken() (token string, err error) {
 	}
 
 	token = cookieMap["sess_key"]
-	c.Printf("Get access token: %s", token)
+	if c.config.Log {
+		c.Printf("Get access token: %s", token)
+	}
 	return token, err
 }
 
