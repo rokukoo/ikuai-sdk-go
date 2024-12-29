@@ -12,7 +12,7 @@ type DNatParam struct {
 }
 
 type AddDNatParam struct {
-	Enabled   bool   `json:"enabled"`
+	Enabled   string `json:"enabled"`
 	LanAddr   string `json:"lan_addr"`
 	LanPort   string `json:"lan_port"`
 	WanPort   string `json:"wan_port"`
@@ -30,7 +30,7 @@ const (
 
 func GetAddDNatParam(lanAddr string, lanPort string, wanPort string, comment string) *AddDNatParam {
 	return &AddDNatParam{
-		Enabled:   true,
+		Enabled:   "yes",
 		LanAddr:   lanAddr,
 		LanPort:   lanPort,
 		WanPort:   wanPort,
