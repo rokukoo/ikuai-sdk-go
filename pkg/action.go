@@ -3,6 +3,7 @@ package ikuai
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -24,8 +25,12 @@ const (
 	HeaderContentType = "Content-Type"
 )
 
-func actionFailed[T any](response *Response[T]) bool {
+func authFailed[T any](response *Response[T]) bool {
 	return response.Result == 10014 || response.ErrMsg == "no login authentication"
+}
+
+func actionFailed[T any](response *Response[T]) bool {
+	return response.Result != 30000 || response.ErrMsg != "Success"
 }
 
 func CallAction[T any, P any](funcName string, action string, param P) (r *Response[T], err error) {
@@ -80,7 +85,7 @@ func CallAction[T any, P any](funcName string, action string, param P) (r *Respo
 		return
 	}
 	// If the action failed and retry is enabled, try to log in again
-	if router.config.Retry.Enable && actionFailed(&result) {
+	if router.config.Retry.Enable && authFailed(&result) {
 		if err = router.login(); err != nil {
 			return
 		}
@@ -89,6 +94,9 @@ func CallAction[T any, P any](funcName string, action string, param P) (r *Respo
 	// Log the action call
 	if router.config.Log {
 		router.Printf("Called action [%s] param=%v -> response: %s\n", action, param, jsonBytes)
+	}
+	if actionFailed(&result) {
+		return nil, fmt.Errorf("action failed: %s", result.ErrMsg)
 	}
 	return &result, err
 }
